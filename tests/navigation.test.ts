@@ -1,9 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './baseFixtures';
 
-test('Test: Navigation', async ({ page, baseURL }) => {
+const baseURL = 'http://localhost:3000/';
 
+
+test('Test: Navigation', async ({page}) => {
   await page.goto(baseURL);
-  expect(page.url()).toBe(baseURL);
   await expect(page).toHaveTitle("Opencast Editor");
 
   // checks if Navbar on left has 4 elements

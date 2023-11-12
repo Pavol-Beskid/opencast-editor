@@ -1,6 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './baseFixtures';
 
-test.beforeEach(async ({ page, baseURL }) => {
+const baseURL = 'http://localhost:3000/';
+
+test.beforeEach(async ({page}) => {
   await page.goto(baseURL);
   await page.click('li[role="menuitem"]:has-text("Metadata")');
 });

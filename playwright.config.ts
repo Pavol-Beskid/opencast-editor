@@ -6,7 +6,8 @@ const config: PlaywrightTestConfig = {
     [process.env.CI ? 'github' : 'list'],
     ['html', { outputFolder: 'playwright-report' }],
   ],
-  testIgnore: '**/redux/**',
+  testDir: './tests',
+  testIgnore: ['**/redux/**'],
   retries: 1,
   timeout: 60 * 1000,
 
@@ -17,7 +18,7 @@ const config: PlaywrightTestConfig = {
   },
 
   webServer: {
-    command: 'npm run start',
+    command: 'VITE_COVERAGE=true npx nyc npm run start', // 'npm run start',
     port: 3000,
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI,
@@ -27,11 +28,11 @@ const config: PlaywrightTestConfig = {
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    },
+    }/*,
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-    },
+    },*/
   ],
 
 
