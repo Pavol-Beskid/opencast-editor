@@ -2,6 +2,10 @@ import {test, expect} from './baseFixtures';
 
 test.describe('Video editing tests', () => {
   test('Cutting the video should create segments', async ({ page }) => {
+    await page.route('**/*/edit.json', async route => {
+      const mockResponse = await import('./testAssets/fakeResponse.json');
+      await route.fulfill({json: mockResponse});
+    });
     await page.goto('http://localhost:3000/');
     await page.getByLabel('Main Navigation').getByLabel('Cutting').click();
     await page.getByLabel('Segment {{index}}. Alive. Start: 00 seconds. End: 01 minutes, 04 seconds.').click();

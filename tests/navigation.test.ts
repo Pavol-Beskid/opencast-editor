@@ -4,6 +4,10 @@ const baseURL = 'http://localhost:3000/';
 
 
 test('Test: Navigation', async ({page}) => {
+  await page.route('**/*/edit.json', async route => {
+    const mockResponse = await import('./testAssets/fakeResponse.json');
+    await route.fulfill({json: mockResponse});
+  });
   await page.goto(baseURL);
   await expect(page).toHaveTitle("Opencast Editor");
 

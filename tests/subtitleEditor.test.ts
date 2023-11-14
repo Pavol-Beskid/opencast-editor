@@ -4,7 +4,7 @@ import { Page, Download, Locator } from '@playwright/test';
 
 const baseURL = 'http://localhost:3000/';
 const textAreaInputs = ['text1', 'text2', 'text3'];
-const timeSegInputs = [{ st: '00:00:10:000', en: '00:00:05:000' }, { st: '00:00:07:000', en: '00:00:11:000' }];
+const timeSegInputs = [{ st: '00:00:05:000', en: '00:00:10:000' }, { st: '00:00:07:000', en: '00:00:11:000' }];
 const vttFile = `WEBVTT
 
 00:00.000 --> 00:05.000
@@ -17,6 +17,10 @@ text2
 
 
 test.beforeEach(async ({ page }) => {
+  await page.route('**/*/edit.json', async route => {
+    const mockResponse = await import('./testAssets/fakeResponse.json');
+    await route.fulfill({json: mockResponse});
+  });
   await page.goto(baseURL);
   await page.click('li[role="menuitem"]:has-text("Subtitles")');
   const addButtonLoc = page.getByLabel('Opens a dialog for creating new subtitles');
@@ -129,5 +133,44 @@ test.describe('Subtitle editor tests', () => {
       const seg = subTimeLine[i].locator('span').first();
       expect(await seg.innerText()).toBe(textAreaInputs[textAreaInputs.length - 2 - i]);
     }
+  });
+
+  test('Subtitles with wrong duration intervals should be corrected', async ({page}) => {
+    await fillSubtitleTextareas(page);
+    let commentSeg = await page.locator('div[class$="listStyle"] > div > div > div > div').all();
+    const wrongDuration = [{ st: '00:00:10:000', en: '00:00:05:000' }, { st: '00:00:07:000', en: '00:00:11:000' }];
+    for (let i = 0, seg: Locator; i < commentSeg.length; i++) {
+      seg = commentSeg[i];
+      const timeInputs: Locator[] = await seg.locator('div[class$="timeAreaStyle"] > input').all();
+      await timeInputs[0].clear();
+      await timeInputs[0].fill(wrongDuration[i].st);
+      await timeInputs[1].clear();
+      await timeInputs[1].fill(wrongDuration[i].en);
+      await timeInputs[1].blur();
+    }
+
+    const durationToMillis = (duration: string): number => {
+      const toMillis = [3600_000, 60_000, 1000, 1];
+      let millis = 0;
+      const times = duration?.split(':');
+      for (let i = 0; i < toMillis.length; i++) {
+        millis += toMillis[i] * parseInt(times[i]);
+      }
+      return millis;
+    }
+
+    commentSeg = await page.locator('div[class$="listStyle"] > div > div > div > div').all();
+    commentSeg.forEach(async (loc: Locator) => {
+      const timeInputs: Locator[] = await loc.locator('div[class$="timeAreaStyle"] > input').all();
+      const startDuration = await timeInputs[0].inputValue();
+      const endDuration = await timeInputs[1].inputValue();
+      console.log(startDuration);
+      console.log(endDuration);
+
+      const stMillis = durationToMillis(startDuration!);
+      const endMillis = durationToMillis(endDuration!);
+
+      expect(stMillis).toBeLessThanOrEqual(endMillis);
+    })
   });
 });

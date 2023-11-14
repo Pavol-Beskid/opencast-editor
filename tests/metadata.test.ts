@@ -1,8 +1,14 @@
 import { test, expect } from './baseFixtures';
+import { client } from '../src/util/client.js';
+import { settings } from '../src/config';
 
 const baseURL = 'http://localhost:3000/';
 
 test.beforeEach(async ({page}) => {
+  await page.route('**/*/edit.json', async route => {
+    const mockResponse = await import('./testAssets/fakeResponse.json');
+    await route.fulfill({json: mockResponse});
+  });
   await page.goto(baseURL);
   await page.click('li[role="menuitem"]:has-text("Metadata")');
 });
